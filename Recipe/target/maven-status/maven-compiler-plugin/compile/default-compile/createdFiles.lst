@@ -1,3 +1,4 @@
+com\mycompany\recipe\CORSFilter.class
 com\mycompany\recipe\entities\Ingredient.class
 com\mycompany\recipe\entities\Comment.class
 com\mycompany\recipe\resources\JavaEE8Resource.class
