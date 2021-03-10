@@ -6,14 +6,20 @@
 package com.mycompany.recipe.beans;
 
 import com.mycompany.recipe.ConnectionFactory;
+import com.mycompany.recipe.entities.Category;
 import com.mycompany.recipe.entities.Ingredient;
 import com.mycompany.recipe.entities.Recipe;
 import com.mycompany.recipe.entities.User;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Random;
 import javax.ejb.Stateless;
 
 /**
@@ -27,7 +33,7 @@ public class RecipeBean {
         
         /* Hämtar 10 senast tillagda recept */
         try(Connection con = ConnectionFactory.getConnection()){
-            String sql = "SELECT * FROM (SELECT * FROM recipes ORDER BY id DESC LIMIT 10) var ORDER BY id ASC";
+            String sql = "SELECT * FROM recipes ORDER BY id DESC LIMIT 10";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             ResultSet recipeData = prepStmt.executeQuery();
 
@@ -38,6 +44,7 @@ public class RecipeBean {
                 String steps = recipeData.getString("steps");
                 String image = recipeData.getString("image");
                 
+
                 /* Hämtar alla likes receptet har */
                 int likes = 0;
 
@@ -48,7 +55,18 @@ public class RecipeBean {
                 while(likesData.next()){
                     likes++;
                 }
+
+                /* Hämtar alla kategorier som receptet har */
+                List<Category> categories = new ArrayList<>();
                 
+                sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet categoryData = prepStmt.executeQuery();
+                while(categoryData.next()){
+                    categories.add(new Category(categoryData.getString("name")));
+                }                                
+
                 /* Hämtar användaren som skapat recepets id */
                 sql = "SELECT * FROM user_recipes WHERE recipe_id = ?";
                 prepStmt = con.prepareStatement(sql);
@@ -71,7 +89,7 @@ public class RecipeBean {
                 
                 List<Ingredient> ingredients = new ArrayList<>();
                 while(recIngData.next()){
-                    int ingredientId = recIngData.getInt("ingredientId");
+                    int ingredientId = recIngData.getInt("ingredient_id");
                     String amount = recIngData.getString("amount");
                     
                     sql = "SELECT * FROM ingredients WHERE id = ?";
@@ -85,7 +103,7 @@ public class RecipeBean {
                     ingredients.add(new Ingredient(ingredientName, amount));
                 }
                 
-                recipes.add(new Recipe(username, name, description, steps, ingredients, image, likes));
+                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
             }
             
             return recipes;
@@ -122,6 +140,17 @@ public class RecipeBean {
                     likes++;
                 }
 
+                /* Hämtar alla kategorier som receptet har */
+                List<Category> categories = new ArrayList<>();
+                
+                sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet categoryData = prepStmt.executeQuery();
+                while(categoryData.next()){
+                    categories.add(new Category(categoryData.getString("name")));
+                }
+                
                 /* Hämtar användaren som skapat recepets id */
                 sql = "SELECT * FROM user_recipes WHERE recipe_id = ?";
                 prepStmt = con.prepareStatement(sql);
@@ -158,7 +187,7 @@ public class RecipeBean {
                     ingredients.add(new Ingredient(ingredientName, amount));
                 }
                 
-                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes));
+                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
             }
             
             return recipes;
@@ -211,6 +240,17 @@ public class RecipeBean {
                         likes++;
                     }
                     
+                    /* Hämtar alla kategorier som receptet har */
+                    List<Category> categories = new ArrayList<>();
+
+                    sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                    prepStmt = con.prepareStatement(sql);
+                    prepStmt.setInt(1, id);
+                    ResultSet categoryData = prepStmt.executeQuery();
+                    while(categoryData.next()){
+                        categories.add(new Category(categoryData.getString("name")));
+                    }
+                    
                     sql = "SELECT * FROM recipe_ingredients WHERE recipe_id = ?";
                     prepStmt = con.prepareStatement(sql);
                     prepStmt.setInt(1, id);
@@ -232,7 +272,7 @@ public class RecipeBean {
                         ingredients.add(new Ingredient(ingredientName, amount));
                     }
 
-                    recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes));
+                    recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
                 }                
             }
 
@@ -286,6 +326,17 @@ public class RecipeBean {
                         likes++;
                     }
                     
+                    /* Hämtar alla kategorier som receptet har */
+                    List<Category> categories = new ArrayList<>();
+
+                    sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                    prepStmt = con.prepareStatement(sql);
+                    prepStmt.setInt(1, id);
+                    ResultSet categoryData = prepStmt.executeQuery();
+                    while(categoryData.next()){
+                        categories.add(new Category(categoryData.getString("name")));
+                    }
+                    
                     sql = "SELECT * FROM recipe_ingredients WHERE recipe_id = ?";
                     prepStmt = con.prepareStatement(sql);
                     prepStmt.setInt(1, id);
@@ -307,7 +358,7 @@ public class RecipeBean {
                         ingredients.add(new Ingredient(ingredientName, amount));
                     }
 
-                    recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes));
+                    recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
                 }                
             }
 
@@ -346,6 +397,17 @@ public class RecipeBean {
                     likes++;
                 }
                 
+                /* Hämtar alla kategorier som receptet har */
+                List<Category> categories = new ArrayList<>();
+                
+                sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet categoryData = prepStmt.executeQuery();
+                while(categoryData.next()){
+                    categories.add(new Category(categoryData.getString("name")));
+                }
+                
                 /* Hämtar användaren som skapat recepets id */
                 sql = "SELECT * FROM user_recipes WHERE recipe_id = ?";
                 prepStmt = con.prepareStatement(sql);
@@ -382,7 +444,7 @@ public class RecipeBean {
                     ingredients.add(new Ingredient(ingredientName, amount));
                 }
                 
-                recipes.add(new Recipe(id, username,name, description, steps, ingredients, image, likes));
+                recipes.add(new Recipe(id, username,name, description, steps, ingredients, image, likes, categories));
             }
             
             return recipes;
@@ -418,6 +480,17 @@ public class RecipeBean {
                 ResultSet likesData = prepStmt.executeQuery();
                 while(likesData.next()){
                     likes++;
+                }
+                
+                /* Hämtar alla kategorier som receptet har */
+                List<Category> categories = new ArrayList<>();
+                
+                sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet categoryData = prepStmt.executeQuery();
+                while(categoryData.next()){
+                    categories.add(new Category(categoryData.getString("name")));
                 }
                 
                 /* Hämtar användaren som skapat recepets id */
@@ -457,7 +530,7 @@ public class RecipeBean {
                     ingredients.add(new Ingredient(ingredientName, amount));
                 }
                 
-                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes));
+                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
             }
             
             return recipes;
@@ -467,20 +540,43 @@ public class RecipeBean {
         }
     }
     
+    private final String absolutePath = "C:\\Users\\Elev\\Documents\\NetBeansProjects\\Recipe\\target\\Recipe-1.0-SNAPSHOT\\";
+    private final String folderName = "images";
+    
     public int saveRecipe(Recipe recipe){
         try(Connection con = ConnectionFactory.getConnection()){
+            /* Base64 till sträng */
+            byte[] byteData = Base64.getDecoder().decode(recipe.getImage());
+
+            /* Slumpar namn */
+            byte[] array = new byte[6]; // length is bounded by 7
+            new Random().nextBytes(array);
+            String generatedString = Base64.getEncoder().encodeToString(array);
+
+            //Relativ sökväg
+            String relativePath = folderName + "\\" + generatedString + ".png";
+            
+            try{
+                Files.write(Paths.get(absolutePath, relativePath), byteData);
+            }catch(IOException e){
+                System.out.println("Error: RecipeBean, createImage. Filen kan inte skapas: " + e.getMessage());
+                return 0;
+            }
+            
+            //Fixar relative path efter filen skapats
+            relativePath = relativePath.replace("\\", "/");
+            
             String sql = "INSERT INTO recipes(name, description, steps, image) VALUES(?, ?, ?, ?)";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             prepStmt.setString(1, recipe.getName());
             prepStmt.setString(2, recipe.getDescription());
             prepStmt.setString(3, recipe.getSteps());
-            prepStmt.setString(4, recipe.getImage());
+            prepStmt.setString(4, relativePath);
 
             prepStmt.executeUpdate();
-            
+
             /* Lägg till ingredienser i databasen om de inte redan finns */            
-            List<Ingredient> ingredients = recipe.getIngredients();
-            for(Ingredient i : ingredients){
+            for(Ingredient i : recipe.getIngredients()){
                 sql = "INSERT INTO ingredients(name) SELECT * FROM (SELECT ?) AS temp\n" +
                       "WHERE NOT EXISTS (SELECT name FROM ingredients WHERE name = ?)";
                 prepStmt = con.prepareStatement(sql);            
@@ -496,13 +592,21 @@ public class RecipeBean {
                 prepStmt.executeUpdate();
             }
             
+            /* Sätter kategori på receptet */
+            for(Category c : recipe.getCategories()){
+                sql = "INSERT INTO recipe_categories(recipe_id, category_id) VALUES((SELECT id FROM recipes ORDER BY ID DESC LIMIT 1), (SELECT id FROM categories WHERE name = ?))";
+                prepStmt = con.prepareStatement(sql);                
+                prepStmt.setString(1, c.getName());                
+            }
+            System.out.println("Ketegori tilagd");
+            
             sql = "INSERT INTO user_recipes(user_id, recipe_id) VALUES((SELECT id FROM users WHERE username = ?), (SELECT id FROM recipes ORDER BY ID DESC LIMIT 1))";
             prepStmt = con.prepareStatement(sql);
             prepStmt.setString(1, recipe.getUsername());            
             
             return prepStmt.executeUpdate();
         }catch(Exception e){
-            System.out.println("Error: RecipeBean, saveRecipe");
+            System.out.println("Error: RecipeBean, saveRecipe: " + e);
             return 0;
         }
     }

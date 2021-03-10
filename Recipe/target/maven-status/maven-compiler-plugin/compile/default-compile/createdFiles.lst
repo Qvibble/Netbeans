@@ -6,6 +6,7 @@ com\mycompany\recipe\resources\UserResource.class
 com\mycompany\recipe\ConnectionFactory.class
 com\mycompany\recipe\entities\Recipe.class
 com\mycompany\recipe\beans\RecipeBean.class
+com\mycompany\recipe\entities\Category.class
 com\mycompany\recipe\resources\CommentResource.class
 com\mycompany\recipe\beans\CommentBean.class
 com\mycompany\recipe\entities\User.class

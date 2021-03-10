@@ -20,8 +20,9 @@ public class Recipe {
     private String image;
     private int likes;
     private int id;
+    private List<Category> categories;
     
-    public Recipe(int id, String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes){
+    public Recipe(int id, String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes, List<Category> categories){
         this.id = id;
         this.username = username;
         this.name = name;
@@ -30,9 +31,10 @@ public class Recipe {
         this.ingredients = ingredients;
         this.image = image;
         this.likes = likes;
+        this.categories = categories;
     }
     
-    public Recipe(String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes){
+    public Recipe(String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes, List<Category> categories){
         this.username = username;
         this.name = name;
         this.description = description;
@@ -40,6 +42,7 @@ public class Recipe {
         this.ingredients = ingredients;
         this.image = image;
         this.likes = likes;
+        this.categories = categories;
     }
 
     public int getId() {
@@ -50,6 +53,14 @@ public class Recipe {
         this.id = id;
     }
 
+    public List<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<Category> categories) {
+        this.categories = categories;
+    }
+    
     public int getLikes() {
         return likes;
     }
