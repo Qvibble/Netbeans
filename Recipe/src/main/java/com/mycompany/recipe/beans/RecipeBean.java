@@ -31,9 +31,9 @@ public class RecipeBean {
     public List<Recipe> getNewRecipes(){
         List<Recipe> recipes = new ArrayList<>();
         
-        /* Hämtar 10 senast tillagda recept */
+        /* Hämtar 9 senast tillagda recept */
         try(Connection con = ConnectionFactory.getConnection()){
-            String sql = "SELECT * FROM recipes ORDER BY id DESC LIMIT 10";
+            String sql = "SELECT * FROM recipes ORDER BY id DESC LIMIT 9";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             ResultSet recipeData = prepStmt.executeQuery();
 
@@ -68,30 +68,32 @@ public class RecipeBean {
                 }                                
 
                 /* Hämtar användaren som skapat recepets id */
-                sql = "SELECT * FROM user_recipes WHERE recipe_id = ?";
+                sql = "SELECT user_id FROM user_recipes WHERE recipe_id = ?";
                 prepStmt = con.prepareStatement(sql);
                 prepStmt.setInt(1, id);
                 ResultSet userRecipeData = prepStmt.executeQuery();
                 userRecipeData.next();                
-                
+
                 /* Hämtar användarens namn */
-                sql = "SELECT * FROM users WHERE id = ?";
+                sql = "SELECT username FROM users WHERE id = ?";
                 prepStmt = con.prepareStatement(sql);
                 prepStmt.setInt(1, userRecipeData.getInt("user_id"));
                 ResultSet userData = prepStmt.executeQuery();
                 userData.next();
+
                 String username = userData.getString("username");
-                
+
+                /* Hämtar receptets ingredienser */
                 sql = "SELECT * FROM recipe_ingredients WHERE recipe_id = ?";
                 prepStmt = con.prepareStatement(sql);
                 prepStmt.setInt(1, id);
                 ResultSet recIngData = prepStmt.executeQuery();
-                
+
                 List<Ingredient> ingredients = new ArrayList<>();
                 while(recIngData.next()){
                     int ingredientId = recIngData.getInt("ingredient_id");
                     String amount = recIngData.getString("amount");
-                    
+
                     sql = "SELECT * FROM ingredients WHERE id = ?";
                     prepStmt = con.prepareStatement(sql);
                     prepStmt.setInt(1, ingredientId);
@@ -116,9 +118,9 @@ public class RecipeBean {
     public List<Recipe> getRandomRecipes(){
         List<Recipe> recipes = new ArrayList<>();
         
-        /* Hämtar 10 slumpade recept */
+        /* Hämtar 9 slumpade recept */
         try(Connection con = ConnectionFactory.getConnection()){
-            String sql = "SELECT * FROM recipes ORDER BY RAND() LIMIT 10";
+            String sql = "SELECT * FROM recipes ORDER BY RAND() LIMIT 9";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             ResultSet recipeData = prepStmt.executeQuery();
 
@@ -296,7 +298,7 @@ public class RecipeBean {
             userData.next();
             
             /* Hämtar recept id */
-            sql = "SELECT recipe_id FROM userRecipes WHERE user_id = ?";
+            sql = "SELECT recipe_id FROM user_recipes WHERE user_id = ?";
             prepStmt = con.prepareStatement(sql);
             prepStmt.setInt(1, userData.getInt("id"));
             ResultSet recipeId = prepStmt.executeQuery();
@@ -305,7 +307,7 @@ public class RecipeBean {
             while(recipeId.next()){
                 sql = "SELECT * FROM recipes WHERE id = ?";
                 prepStmt = con.prepareStatement(sql);
-                prepStmt.setInt(1, recipeId.getInt("id"));
+                prepStmt.setInt(1, recipeId.getInt("recipe_id"));
                 ResultSet recipeData = prepStmt.executeQuery();
 
                 while(recipeData.next()){
@@ -344,7 +346,7 @@ public class RecipeBean {
 
                     List<Ingredient> ingredients = new ArrayList<>();
                     while(recIngData.next()){
-                        int ingredientId = recIngData.getInt("ingredientId");
+                        int ingredientId = recIngData.getInt("ingredient_id");
                         String amount = recIngData.getString("amount");
 
                         sql = "SELECT * FROM ingredients WHERE id = ?";
@@ -374,9 +376,11 @@ public class RecipeBean {
         
         /* Hämtar alla recept som innehåller söktermen */
         try(Connection con = ConnectionFactory.getConnection()){
-            String sql = "SELECT * FROM recipes WHERE name = %?%";
+            //Allt som börjard med searchTerm för och sedan allt som innehåller searchTerm
+            String sql = "SELECT * FROM recipes WHERE name LIKE ? ORDER BY CASE WHEN name like ? THEN 0 ELSE 1 END, name"; 
             PreparedStatement prepStmt = con.prepareStatement(sql);
-            prepStmt.setString(1, searchTerm);
+            prepStmt.setString(1, "%" + searchTerm + "%");
+            prepStmt.setString(2, searchTerm + "%");
             ResultSet recipeData = prepStmt.executeQuery();
 
             while(recipeData.next()){
@@ -430,7 +434,7 @@ public class RecipeBean {
                 
                 List<Ingredient> ingredients = new ArrayList<>();
                 while(recIngData.next()){
-                    int ingredientId = recIngData.getInt("ingredientId");
+                    int ingredientId = recIngData.getInt("ingredient_id");
                     String amount = recIngData.getString("amount");
                     
                     sql = "SELECT * FROM ingredients WHERE id = ?";
@@ -545,8 +549,10 @@ public class RecipeBean {
     
     public int saveRecipe(Recipe recipe){
         try(Connection con = ConnectionFactory.getConnection()){
-            /* Base64 till sträng */
-            byte[] byteData = Base64.getDecoder().decode(recipe.getImage());
+            /* Base64 till sträng - tar bort data url */
+            String base64 = recipe.getImage().substring(recipe.getImage().indexOf(",")+1);
+
+            byte[] byteData = Base64.getDecoder().decode(base64);
 
             /* Slumpar namn */
             byte[] array = new byte[6]; // length is bounded by 7
@@ -596,9 +602,9 @@ public class RecipeBean {
             for(Category c : recipe.getCategories()){
                 sql = "INSERT INTO recipe_categories(recipe_id, category_id) VALUES((SELECT id FROM recipes ORDER BY ID DESC LIMIT 1), (SELECT id FROM categories WHERE name = ?))";
                 prepStmt = con.prepareStatement(sql);                
-                prepStmt.setString(1, c.getName());                
+                prepStmt.setString(1, c.getName());         
+                prepStmt.executeUpdate();
             }
-            System.out.println("Ketegori tilagd");
             
             sql = "INSERT INTO user_recipes(user_id, recipe_id) VALUES((SELECT id FROM users WHERE username = ?), (SELECT id FROM recipes ORDER BY ID DESC LIMIT 1))";
             prepStmt = con.prepareStatement(sql);
