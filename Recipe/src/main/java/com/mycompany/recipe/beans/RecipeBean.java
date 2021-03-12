@@ -210,18 +210,18 @@ public class RecipeBean {
             prepStmt.setString(1, username);
             ResultSet userData = prepStmt.executeQuery();     
             userData.next();
-            
+
             /* Hämtar recept id */
             sql = "SELECT recipe_id FROM likes WHERE user_id = ?";
             prepStmt = con.prepareStatement(sql);
             prepStmt.setInt(1, userData.getInt("id"));
             ResultSet likedData = prepStmt.executeQuery();
-            
+
             /* Hämtar alla gillade recept */
             while(likedData.next()){
                 sql = "SELECT * FROM recipes WHERE id = ?";
                 prepStmt = con.prepareStatement(sql);
-                prepStmt.setInt(1, likedData.getInt("id"));
+                prepStmt.setInt(1, likedData.getInt("recipe_id"));
                 ResultSet recipeData = prepStmt.executeQuery();
 
                 while(recipeData.next()){
@@ -260,7 +260,7 @@ public class RecipeBean {
 
                     List<Ingredient> ingredients = new ArrayList<>();
                     while(recIngData.next()){
-                        int ingredientId = recIngData.getInt("ingredientId");
+                        int ingredientId = recIngData.getInt("ingredient_id");
                         String amount = recIngData.getString("amount");
 
                         sql = "SELECT * FROM ingredients WHERE id = ?";
@@ -373,7 +373,7 @@ public class RecipeBean {
     
     public List<Recipe> getSearchedRecipes(String searchTerm){
         List<Recipe> recipes = new ArrayList<>();
-        
+
         /* Hämtar alla recept som innehåller söktermen */
         try(Connection con = ConnectionFactory.getConnection()){
             //Allt som börjard med searchTerm för och sedan allt som innehåller searchTerm
@@ -458,8 +458,16 @@ public class RecipeBean {
         }
     }
     
-    public List<Recipe> getRecipe(String recipeId){
+    public List<Recipe> getRecipe(String idUsername){
         List<Recipe> recipes = new ArrayList<>();
+        
+        //Håller koll på om användaren gillat receptet
+        boolean liked = false;
+
+        //Dela upp strängen
+        String[] s = idUsername.split("\\|");
+        String recipeId = s[0];
+        String currentUser = s[1];
         
         /* Hämtar ett recept med hjälp av id */
         try(Connection con = ConnectionFactory.getConnection()){
@@ -484,6 +492,17 @@ public class RecipeBean {
                 ResultSet likesData = prepStmt.executeQuery();
                 while(likesData.next()){
                     likes++;
+                }
+                               
+                /* Hämtar om användaren gillat receptet */
+                
+                sql = "SELECT * FROM likes WHERE recipe_id = ? AND user_id = (SELECT id FROM users WHERE username = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                prepStmt.setString(2, currentUser);
+                ResultSet likedData = prepStmt.executeQuery();
+                if(likedData.next()){
+                    liked = true;
                 }
                 
                 /* Hämtar alla kategorier som receptet har */
@@ -520,7 +539,7 @@ public class RecipeBean {
                 
                 List<Ingredient> ingredients = new ArrayList<>();
                 while(recIngData.next()){
-                    int ingredientId = recIngData.getInt("ingredientId");
+                    int ingredientId = recIngData.getInt("ingredient_id");
                     String amount = recIngData.getString("amount");
                     
                     sql = "SELECT * FROM ingredients WHERE id = ?";
@@ -534,9 +553,9 @@ public class RecipeBean {
                     ingredients.add(new Ingredient(ingredientName, amount));
                 }
                 
-                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories));
+                recipes.add(new Recipe(id, username, name, description, steps, ingredients, image, likes, categories, liked));
             }
-            
+                        
             return recipes;
         }catch(Exception e){
             System.out.println("Error: RecipeBean, getRecipe: " + e);
@@ -648,6 +667,44 @@ public class RecipeBean {
             System.out.println("Error: RecipeBean, removeRecipe");
             return 0;
         }
+    }
+    
+    public int addLike(String idUsername){
+        //0 = id, 1 = användarnamn
+        String[] s = idUsername.split("\\|");
+        String recipeId = s[0];
+        String currentUser = s[1];
+        
+        try(Connection con = ConnectionFactory.getConnection()){
+            String sql = "INSERT INTO likes(user_id, recipe_id) VALUES((SELECT id FROM users WHERE username = ?), ?)";
+            PreparedStatement prepStmt = con.prepareStatement(sql);
+            prepStmt.setString(1, currentUser);
+            prepStmt.setInt(2, Integer.parseInt(recipeId));
+            
+            return prepStmt.executeUpdate();
+        }catch(Exception e){
+            System.out.println("Error: RecipeBean, addLike: " + e);
+            return 0;
+        }        
+    }
+    
+    public int removeLike(String idUsername){
+        //0 = id, 1 = användarnamn
+        String[] s = idUsername.split("\\|");
+        String recipeId = s[0];
+        String currentUser = s[1];
+        
+        try(Connection con = ConnectionFactory.getConnection()){
+            String sql = "DELETE FROM likes WHERE user_id = (SELECT id FROM users WHERE username = ?) AND recipe_id = ?";
+            PreparedStatement prepStmt = con.prepareStatement(sql);
+            prepStmt.setString(1, currentUser);
+            prepStmt.setInt(2, Integer.parseInt(recipeId));
+
+            return prepStmt.executeUpdate();
+        }catch(Exception e){
+            System.out.println("Error: RecipeBean, removeLike: " + e);
+            return 0;
+        }        
     }
     
     

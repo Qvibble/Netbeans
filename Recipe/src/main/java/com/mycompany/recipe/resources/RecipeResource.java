@@ -8,6 +8,7 @@ package com.mycompany.recipe.resources;
 import com.google.gson.Gson;
 import com.mycompany.recipe.beans.RecipeBean;
 import com.mycompany.recipe.entities.Recipe;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -77,9 +78,11 @@ public class RecipeResource {
     @GET
     @Path("search")
     public Response getSearchedRecipes(@HeaderParam("SearchTerm")String searchTerm){
+        List<Recipe> r = recipeBean.getSearchedRecipes(searchTerm);
+            
         /* Om det gick att hämta recept */
-        if(recipeBean.getSearchedRecipes(searchTerm) != null){
-            return Response.ok(recipeBean.getSearchedRecipes(searchTerm)).build(); 
+        if(r != null){
+            return Response.ok(r).build(); 
         /* Om det inte gick att hämta recept */
         }else{
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -87,11 +90,13 @@ public class RecipeResource {
     }
     
     @GET
-    @Path("id")
-    public Response getRecipe(@HeaderParam("RecipeId")String recipeId){
+    @Path("idUsername")
+    public Response getRecipe(@HeaderParam("IdUsername")String idUsername){
         /* Om det gick att hämta recept */
-        if(recipeBean.getRecipe(recipeId) != null){
-            return Response.ok(recipeBean.getRecipe(recipeId)).build(); 
+        List<Recipe> r = recipeBean.getRecipe(idUsername);
+        
+        if(r != null){
+            return Response.ok(r).build(); 
         /* Om det inte gick att hämta recept */
         }else{
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -138,7 +143,7 @@ public class RecipeResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         /* Om det gick att spara */
         }else{
-            return Response.status(Response.Status.CREATED).build();
+            return Response.ok().build();
         }  
     }
     
@@ -152,5 +157,34 @@ public class RecipeResource {
         }else{
             return Response.status(Response.Status.CREATED).build();
         }  
+    }
+
+    @POST
+    @Path("like")
+    public Response likeRecipe(String idUsername){
+        //recipeIdUsernerm set ut ex. 5|Användare
+        //Delas med "|"
+        
+        /*Om det inte gick att lägga till / ta bort en like*/
+        if(recipeBean.addLike(idUsername) == 0){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        /* Om det gick att ändra */
+        }else{
+            return Response.ok().build();
+        }
+    }
+    @DELETE
+    @Path("like")
+    public Response removeLikeRecipe(String idUsername){
+        //recipeIdUsernerm set ut ex. 5|Användare
+        //Delas med "|"
+        
+        /*Om det inte gick att lägga till / ta bort en like*/
+        if(recipeBean.removeLike(idUsername) == 0){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        /* Om det gick att ändra */
+        }else{
+            return Response.ok().build();
+        }
     }
 }

@@ -21,6 +21,7 @@ public class Recipe {
     private int likes;
     private int id;
     private List<Category> categories;
+    private boolean liked;
     
     public Recipe(int id, String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes, List<Category> categories){
         this.id = id;
@@ -34,6 +35,19 @@ public class Recipe {
         this.categories = categories;
     }
     
+    public Recipe(int id, String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes, List<Category> categories, boolean liked){
+        this.id = id;
+        this.username = username;
+        this.name = name;
+        this.description = description;
+        this.steps = steps;
+        this.ingredients = ingredients;
+        this.image = image;
+        this.likes = likes;
+        this.categories = categories;
+        this.liked = liked;
+    }
+    
     public Recipe(String username, String name, String description, String steps, List<Ingredient> ingredients, String image, int likes, List<Category> categories){
         this.username = username;
         this.name = name;
@@ -43,6 +57,14 @@ public class Recipe {
         this.image = image;
         this.likes = likes;
         this.categories = categories;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
     }
 
     public int getId() {
