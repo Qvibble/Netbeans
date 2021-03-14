@@ -90,10 +90,24 @@ public class RecipeResource {
     }
     
     @GET
-    @Path("idUsername")
+    @Path("get")
     public Response getRecipe(@HeaderParam("IdUsername")String idUsername){
         /* Om det gick att hämta recept */
         List<Recipe> r = recipeBean.getRecipe(idUsername);
+        
+        if(r != null){
+            return Response.ok(r).build(); 
+        /* Om det inte gick att hämta recept */
+        }else{
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+    
+    @GET
+    @Path("category")
+    public Response getCategoryRecipe(@HeaderParam("Category")String category){
+        /* Om det gick att hämta recept */
+        List<Recipe> r = recipeBean.getCategoryRecipes(category);
         
         if(r != null){
             return Response.ok(r).build(); 
@@ -155,7 +169,7 @@ public class RecipeResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         /* Om det gick att spara */
         }else{
-            return Response.status(Response.Status.CREATED).build();
+            return Response.ok().build();
         }  
     }
 
@@ -175,10 +189,10 @@ public class RecipeResource {
     }
     @DELETE
     @Path("like")
-    public Response removeLikeRecipe(String idUsername){
+    public Response removeLikeRecipe(@HeaderParam("IdUsername")String idUsername){
         //recipeIdUsernerm set ut ex. 5|Användare
         //Delas med "|"
-        
+        System.out.println("remove like");
         /*Om det inte gick att lägga till / ta bort en like*/
         if(recipeBean.removeLike(idUsername) == 0){
             return Response.status(Response.Status.BAD_REQUEST).build();

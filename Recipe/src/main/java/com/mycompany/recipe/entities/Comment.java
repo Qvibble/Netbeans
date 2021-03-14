@@ -15,19 +15,25 @@ public class Comment {
     private String username;
     private int recipeId;
 
+    public Comment(String content, String date, String username, int recipeId){
+        this.content = content;
+        this.date = date;
+        this.username = username;
+        this.recipeId = recipeId;
+    }
+    
+    public Comment(String content, String date, String username){
+        this.content = content;
+        this.date = date;
+        this.username = username;
+    }
+    
     public int getRecipeId() {
         return recipeId;
     }
 
     public void setRecipeId(int recipeId) {
         this.recipeId = recipeId;
-    }
-
-    
-    public Comment(String content, String date, String username){
-        this.content = content;
-        this.date = date;
-        this.username = username;
     }
     
     public String getUsername() {

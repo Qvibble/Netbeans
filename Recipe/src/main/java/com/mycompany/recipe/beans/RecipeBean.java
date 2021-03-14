@@ -458,6 +458,92 @@ public class RecipeBean {
         }
     }
     
+    public List<Recipe> getCategoryRecipes(String category){
+        List<Recipe> recipes = new ArrayList<>();
+
+        /* Hämtar alla recept som innehåller söktermen */
+        try(Connection con = ConnectionFactory.getConnection()){
+            //Allt som börjard med searchTerm för och sedan allt som innehåller searchTerm
+            String sql = "SELECT * FROM recipes WHERE id = (SELECT recipe_id FROM recipe_categories WHERE category_id = (SELECT id FROM categories WHERE name = ?))"; 
+            PreparedStatement prepStmt = con.prepareStatement(sql);
+            prepStmt.setString(1, category);
+            ResultSet recipeData = prepStmt.executeQuery();
+
+            while(recipeData.next()){
+                int id = recipeData.getInt("id");
+                String name = recipeData.getString("name");
+                String description = recipeData.getString("description");
+                String steps = recipeData.getString("steps");
+                String image = recipeData.getString("image");
+                
+                /* Hämtar alla likes receptet har */
+                int likes = 0;
+                
+                sql = "SELECT * FROM likes WHERE recipe_id = ?";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet likesData = prepStmt.executeQuery();
+                while(likesData.next()){
+                    likes++;
+                }
+                
+                /* Hämtar alla kategorier som receptet har */
+                List<Category> categories = new ArrayList<>();
+                
+                sql = "SELECT name FROM categories WHERE id IN (SELECT category_id FROM recipe_categories WHERE recipe_id = ?)";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet categoryData = prepStmt.executeQuery();
+                while(categoryData.next()){
+                    categories.add(new Category(categoryData.getString("name")));
+                }
+                
+                /* Hämtar användaren som skapat recepets id */
+                sql = "SELECT * FROM user_recipes WHERE recipe_id = ?";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet userRecipeData = prepStmt.executeQuery();
+                userRecipeData.next();                
+                
+                /* Hämtar användarens namn */
+                sql = "SELECT * FROM users WHERE id = ?";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, userRecipeData.getInt("user_id"));
+                ResultSet userData = prepStmt.executeQuery();
+                userData.next();
+                String username = userData.getString("username");
+                
+                sql = "SELECT * FROM recipe_ingredients WHERE recipe_id = ?";
+                prepStmt = con.prepareStatement(sql);
+                prepStmt.setInt(1, id);
+                ResultSet recIngData = prepStmt.executeQuery();
+                
+                List<Ingredient> ingredients = new ArrayList<>();
+                while(recIngData.next()){
+                    int ingredientId = recIngData.getInt("ingredient_id");
+                    String amount = recIngData.getString("amount");
+                    
+                    sql = "SELECT * FROM ingredients WHERE id = ?";
+                    prepStmt = con.prepareStatement(sql);
+                    prepStmt.setInt(1, ingredientId);
+                    ResultSet ingredientData = prepStmt.executeQuery();
+                    ingredientData.next();
+                    
+                    String ingredientName = ingredientData.getString("name");
+                    
+                    ingredients.add(new Ingredient(ingredientName, amount));
+                }
+                
+                recipes.add(new Recipe(id, username,name, description, steps, ingredients, image, likes, categories));
+            }
+            
+            return recipes;
+        }catch(Exception e){
+            System.out.println("Error: RecipeBean, getSearchedRecipes: " + e);
+            return null;
+        }
+    }
+    
     public List<Recipe> getRecipe(String idUsername){
         List<Recipe> recipes = new ArrayList<>();
         
@@ -655,7 +741,7 @@ public class RecipeBean {
     
     public int removeRecipe(String recipeId){
         try(Connection con = ConnectionFactory.getConnection()){
-            String sql = "DELETE FROM recipe WHERE id = ?";
+            String sql = "DELETE FROM recipes WHERE id = ?";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             prepStmt.setString(1, recipeId);
             
@@ -664,7 +750,7 @@ public class RecipeBean {
 
             return prepStmt.executeUpdate();
         }catch(Exception e){
-            System.out.println("Error: RecipeBean, removeRecipe");
+            System.out.println("Error: RecipeBean, removeRecipe: " + e);
             return 0;
         }
     }

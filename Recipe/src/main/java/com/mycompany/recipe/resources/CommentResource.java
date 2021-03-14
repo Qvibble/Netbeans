@@ -33,8 +33,8 @@ public class CommentResource {
      * @return List of Comment objects
      */
     @GET
-    @Path("recipe")
-    public Response getRecipeComments(@HeaderParam("recipeId")String recipeId){
+    @Path("get")
+    public Response getRecipeComments(@HeaderParam("RecipeId")String recipeId){
         /* Lista med alla kommenterer från receptet*/
         List<Comment> comments = commentBean.getComments(Integer.parseInt(recipeId));
         
@@ -55,7 +55,7 @@ public class CommentResource {
     public Response saveComment(String commentData){
         Gson gson = new Gson();
         Comment comment = gson.fromJson(commentData, Comment.class);                
-        
+
         /* Om det inte gick att spara */
         if(commentBean.saveComment(comment) == 0){
             return Response.status(Response.Status.BAD_REQUEST).build();

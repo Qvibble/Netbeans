@@ -35,7 +35,7 @@ public class CommentBean {
 
         try(Connection con = ConnectionFactory.getConnection()){
             /* Hämtar kommentarens innehåll, datum */
-            String sql = "SELECT * FROM comments WHERE id IN (SELECT comment_id FROM recipe_comments WHERE recipe_id = ?)";
+            String sql = "SELECT * FROM comments WHERE id IN (SELECT comment_id FROM recipe_comments WHERE recipe_id = ?) ORDER BY id DESC";
             PreparedStatement prepStmt = con.prepareStatement(sql);
             prepStmt = con.prepareStatement(sql);
             prepStmt.setInt(1, recipeId);
