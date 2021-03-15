@@ -91,8 +91,9 @@ public class RecipeResource {
     
     @GET
     @Path("get")
-    public Response getRecipe(@HeaderParam("IdUsername")String idUsername){
+    public Response getRecipe(@HeaderParam("IdUsername")String idUsername)throws InterruptedException{
         /* Om det gick att hämta recept */
+        Thread.sleep(100);
         List<Recipe> r = recipeBean.getRecipe(idUsername);
         
         if(r != null){

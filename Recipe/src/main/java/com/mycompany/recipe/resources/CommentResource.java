@@ -34,10 +34,10 @@ public class CommentResource {
      */
     @GET
     @Path("get")
-    public Response getRecipeComments(@HeaderParam("RecipeId")String recipeId){
+    public Response getRecipeComments(@HeaderParam("RecipeId")String recipeId) throws InterruptedException{
         /* Lista med alla kommenterer från receptet*/
+        Thread.sleep(100);
         List<Comment> comments = commentBean.getComments(Integer.parseInt(recipeId));
-        
         /* Om något gick fel */
         if(comments == null){
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -46,6 +46,7 @@ public class CommentResource {
             return Response.status(Response.Status.NO_CONTENT).build();
         /* Om det finns kommentarer */
         }else{
+            System.out.println(comments.size());
             return Response.ok(comments).build();
         }
     }
@@ -61,6 +62,7 @@ public class CommentResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         /* Om det gick att spara */
         }else{
+            System.out.println("Comment saved");
             return Response.status(Response.Status.CREATED).build();            
         }
     }
