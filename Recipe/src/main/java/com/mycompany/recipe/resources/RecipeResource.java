@@ -193,7 +193,7 @@ public class RecipeResource {
     public Response removeLikeRecipe(@HeaderParam("IdUsername")String idUsername){
         //recipeIdUsernerm set ut ex. 5|Användare
         //Delas med "|"
-        System.out.println("remove like");
+
         /*Om det inte gick att lägga till / ta bort en like*/
         if(recipeBean.removeLike(idUsername) == 0){
             return Response.status(Response.Status.BAD_REQUEST).build();

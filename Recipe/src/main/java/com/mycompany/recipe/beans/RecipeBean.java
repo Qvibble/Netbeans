@@ -599,7 +599,7 @@ public class RecipeBean {
                 prepStmt.setInt(1, id);
                 ResultSet categoryData = prepStmt.executeQuery();
                 while(categoryData.next()){
-                    categories.add(new Category(categoryData.getString("name")));
+                    categories.add(new Category(categoryData.getString("name").toLowerCase()));
                 }
                 
                 /* Hämtar användaren som skapat recepets id */
